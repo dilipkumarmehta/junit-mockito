@@ -1,25 +1,27 @@
 package com.math.demo;
 
-import static org.mockito.Mockito.mock;
+
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 // @RunWith attaches a runner with the test class to initialize the test data
-@RunWith(SpringRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MathApplicationTester {
 
 	// @InjectMocks annotation is used to create and inject the mock object
 
 	// @Mock annotation is used to create the mock object to be injected
-	CalculatorService calcService = mock(CalculatorService.class);
+	@Mock
+	CalculatorService calcService;
 
 	@InjectMocks
-	MathApplication mathApplication = new MathApplication(calcService);
+	MathApplication mathApplication ;//= new MathApplication();
 
 	@Test
    public void testAdd(){

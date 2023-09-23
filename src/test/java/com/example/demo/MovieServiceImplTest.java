@@ -40,7 +40,7 @@ public class MovieServiceImplTest {
 	@Test
 	public void getMoviesTest() {
 		Movie movie = new Movie(1, "Bahubali", "Telugu", "Action", 4, "bahubali.png");
-		Movie movie1 = new Movie(2, "Avengers", "English", "Action", 4, "avenger.png");
+		Movie movie1= new Movie(2, "Avengers", "English", "Action", 4, "avenger.png");
 		List<Movie> list = new ArrayList<Movie>();
 		list.add(movie);
 		list.add(movie1);

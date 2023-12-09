@@ -30,7 +30,7 @@ public class MovieRestController {
 
 	
 	@CrossOrigin(origins = "*")
-	@PostMapping(path = "/insertMovie", consumes = "application/json")
+	@PostMapping("/insertMovie")
 	public ResponseEntity<Movie> saveMovie(@RequestBody Movie movie) {
 		LOGGER.info("***saveMovie action called..");
 		return new ResponseEntity<Movie>(mService.insertMovie(movie),HttpStatus.CREATED);

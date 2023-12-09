@@ -19,7 +19,7 @@ import com.example.model.Movie;
 import com.example.repository.MovieRepository;
 
 /**
- * 
+ * getMovieById() fully tested
  */
 @SpringBootTest
 class MovieServiceImplTest {

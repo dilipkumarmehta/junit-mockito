@@ -3,7 +3,7 @@
 		try {
 			Optional<Customer> byId = customerRepository.findById(id);
 			if (byId.isPresent()) {
-				//return byId.get();
+				return byId.get();
 			} else
 				throw new CustomerNotFoundException("Customer not found with id " + id);
 		} catch (SQLGrammarException e) {

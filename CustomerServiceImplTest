@@ -1,0 +1,168 @@
+/**
+ * 
+ */
+package com.ibm.cust.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Optional;
+
+import org.hibernate.exception.SQLGrammarException;
+import org.hibernate.service.spi.ServiceException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessException;
+
+import com.ibm.cust.beans.Customer;
+import com.ibm.cust.exception.CustomDatabaseException;
+import com.ibm.cust.exception.CustomerAlreadyExistException;
+import com.ibm.cust.exception.CustomerNotFoundException;
+import com.ibm.cust.exception.CustomerSaveException;
+
+/**
+ * 
+ */
+
+@ExtendWith(MockitoExtension.class)
+class CustomerServiceImplTest {
+
+	@Mock
+	CustomerRepository customerRepository;
+
+	@InjectMocks
+	CustomerServiceImpl customerServiceImpl;
+
+	Customer cust;
+
+	@BeforeEach
+	public void setUp() {
+		cust = new Customer();
+		cust.setId(2);
+		cust.setEmail("dilip@gmail.com");
+		cust.setLast_name("Mehta");
+		cust.setFirst_name("Dilip");
+
+	}
+
+	@Test
+	public void testSaveCustomerSuccess() {
+		when(customerRepository.findById(cust.getId())).thenReturn(Optional.empty());
+		when(customerRepository.save(cust)).thenReturn(cust);
+		Customer save = customerServiceImpl.save(cust);
+		assertNotNull(save);
+		assertEquals(cust.getId(), save.getId());
+		verify(customerRepository, times(1)).findById(cust.getId());
+		verify(customerRepository, times(1)).save(cust);
+
+	}
+	
+	@Test
+	public void saveNull() {
+		assertEquals(null,customerServiceImpl.save(null) );
+	}
+
+	@Test
+	public void testSaveExistingCustomer() {
+		when(customerRepository.findById(cust.getId())).thenReturn(Optional.of(cust));
+		Exception exception = assertThrows(CustomerAlreadyExistException.class, () -> customerServiceImpl.save(cust));
+		System.out.println(exception.getMessage());// existing customer2
+	}
+
+	@Test
+	public void testSavedataSaveAceotiin() {
+		when(customerRepository.findById(cust.getId())).thenReturn(Optional.empty());
+		when(customerRepository.save(cust)).thenThrow(new DataAccessException("access exception") {
+		});
+		Exception exception = assertThrows(CustomerSaveException.class, () -> customerServiceImpl.save(cust));
+		assertEquals("Failed to save customer", exception.getMessage());
+		verify(customerRepository, times(1)).findById(cust.getId());
+		verify(customerRepository, times(1)).save(cust);
+
+	}
+
+	@Test
+	public void getCustomerById() {
+
+	}
+
+	@Test
+	public void getCustomerByIdREturnEmpty() {
+		// 1. for success
+		when(customerRepository.findById(1)).thenReturn(Optional.of(cust));
+		assertEquals(2, customerServiceImpl.getCustomerById(1).getId());
+		// 2. for return empty data from db
+		when(customerRepository.findById(1)).thenReturn(Optional.empty());
+		assertThrows(CustomerNotFoundException.class, () -> customerServiceImpl.getCustomerById(1));
+		// 3. when exception thrown while query
+		when(customerRepository.findById(2)).thenThrow(new SQLGrammarException("sqlException", null) {
+		});
+		assertThrows(CustomDatabaseException.class, () -> customerServiceImpl.getCustomerById(2));
+
+	}
+
+	@Test
+	public void extracted() {
+		when(customerRepository.findById(2)).thenThrow(new DataAccessException("data access Exception") {
+		});
+		assertEquals(null, customerServiceImpl.getCustomerById(2));
+	}
+
+	@Test
+	public void getAllCustomer() {
+		List<Customer> listCust = List.of(cust);
+		when(customerRepository.findAll()).thenReturn(listCust);
+		assertEquals(listCust, customerServiceImpl.getAllCustomer());
+
+		when(customerRepository.findAll()).thenThrow(new RuntimeException());
+		assertThrows(ServiceException.class, () -> customerServiceImpl.getAllCustomer());
+
+	}
+
+	@Test
+	public void getCustomerByName() {
+		List<Customer> listCust = List.of(cust);
+		when(customerRepository.getCustomerByName(cust.getFirst_name())).thenReturn(listCust);
+		assertEquals(listCust,customerServiceImpl.getCustomerByName(cust.getFirst_name()));
+	}
+
+//private Method testing	
+	@Test
+    public void testGetCustomerById1_CustomerFound() throws Exception {
+        Customer customer = new Customer();
+        when(customerRepository.findById(1)).thenReturn(Optional.of(customer));
+
+        Method method = CustomerServiceImpl.class.getDeclaredMethod("getCustomerById1", Integer.class);
+        method.setAccessible(true);
+        Customer result = (Customer) method.invoke(customerServiceImpl,1);
+        assertEquals(customer, result);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,169 @@
+package com.ibm.cust.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.hibernate.exception.SQLGrammarException;
+import org.hibernate.service.spi.ServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ibm.cust.beans.Customer;
+import com.ibm.cust.exception.CustomDatabaseException;
+import com.ibm.cust.exception.CustomerAlreadyExistException;
+import com.ibm.cust.exception.CustomerNotFoundException;
+import com.ibm.cust.exception.CustomerSaveException;
+
+@Service
+public class CustomerServiceImpl implements CustomerService {
+
+	@Autowired
+	CustomerRepository customerRepository;
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public Customer save(Customer cust) throws CustomerSaveException {
+		Customer scustomer = null;
+		if (cust == null) {
+			return null;
+		}
+		try {
+			Optional<Customer> customer = customerRepository.findById(cust.getId());
+			if (customer.isPresent()) {
+				throw new CustomerAlreadyExistException("existing customer" + cust.getId());
+			}
+			System.out.println("get custome calls");
+			scustomer = customerRepository.save(cust);
+			System.out.println("save customer");
+		} catch (DataAccessException e) {
+			throw new CustomerSaveException("Failed to save customer", e);
+		}
+		return scustomer;
+	}
+//if get empty 2. save and Throw DataAccessException
+
+	@Override
+	public List<Customer> getAllCustomer() {
+		try {
+			return customerRepository.findAll();
+			// throw new NullPointerException();
+		} catch (Exception ex) {
+			throw new ServiceException("Error in service while fetching user by ID", ex);
+		}
+	}
+
+	/*
+	 * @Override public List<Customer> getCustomerByName(String name) {
+	 * List<Customer> customerByName = customerRepository.getCustomerByName(name);
+	 * return customerByName; }
+	 */
+	@Override
+	public List<Customer> getCustomerByName(String name) {
+        return privategetCustomerByName(name);
+    }
+
+    private List<Customer> privategetCustomerByName(String name) {
+        List<Customer> customerByName = customerRepository.getCustomerByName(name);
+        return customerByName;
+    }
+
+	@Override
+	public Integer deleteCustomerById(Integer id) {
+		try {
+			Optional<Customer> byId = customerRepository.findById(id);
+			if (!byId.isPresent()) {
+				throw new CustomerNotFoundException("Customer not found with id " + id);
+			}
+			int deleteCustomerById = customerRepository.deleteCustomerById(id);
+			return deleteCustomerById;
+		} catch (DataAccessException ex) {
+			System.out.println("exception" + ex);
+		}
+		return 0;
+
+	}
+
+	@Override
+	public Customer updateCustomer(Integer id, Customer updatedCustomer) {
+		Optional<Customer> existingCustomerOptional = customerRepository.findById(id);
+		if (existingCustomerOptional.isPresent()) {
+			Customer existingCustomer = existingCustomerOptional.get();
+			existingCustomer.setFirst_name(updatedCustomer.getFirst_name());
+			existingCustomer.setLast_name(updatedCustomer.getLast_name());
+			existingCustomer.setEmail(updatedCustomer.getEmail());
+			return customerRepository.save(existingCustomer);
+		} else {
+			throw new CustomerNotFoundException("Customer not found with id " + id);
+		}
+
+	}
+
+	@Override
+	public Customer getCustomerById(Integer id) {
+		try {
+			Optional<Customer> byId = customerRepository.findById(id);
+			if (byId.isPresent()) {
+				return byId.get();
+			} else
+				throw new CustomerNotFoundException("Customer not found with id " + id);
+		} catch (SQLGrammarException e) {
+			// Handle the exception
+			//System.err.println("SQL Grammar Error: " + e.getMessage());
+			// Optionally, log the error or rethrow it as a custom exception
+			throw new CustomDatabaseException("There was a problem with the SQL syntax", e);
+
+		} catch (DataAccessException ex) {
+			
+		}
+		return null;
+
+	}
+	
+
+	private Customer getCustomerById1(Integer id) {
+		try {
+			Optional<Customer> byId = customerRepository.findById(id);
+			if (byId.isPresent()) {
+				return byId.get();
+			} else
+				throw new CustomerNotFoundException("Customer not found with id " + id);
+		} catch (SQLGrammarException e) {
+			// Handle the exception
+			//System.err.println("SQL Grammar Error: " + e.getMessage());
+			// Optionally, log the error or rethrow it as a custom exception
+			throw new CustomDatabaseException("There was a problem with the SQL syntax", e);
+
+		} catch (DataAccessException ex) {
+			
+		}
+		return null;
+
+	}
+
+	
+	public static Customer getCustomerById2(Integer id) {
+		try {
+			 Customer cust=new Customer();
+			 cust.setEmail("dddd");
+			Optional<Customer> byId = Optional.of(cust);
+			if (byId.isPresent()) {
+				return byId.get();
+			} else
+				throw new CustomerNotFoundException("Customer not found with id " + id);
+		} catch (SQLGrammarException e) {
+			// Handle the exception
+			//System.err.println("SQL Grammar Error: " + e.getMessage());
+			// Optionally, log the error or rethrow it as a custom exception
+			throw new CustomDatabaseException("There was a problem with the SQL syntax", e);
+
+		} catch (DataAccessException ex) {
+			
+		}
+		return null;
+
+	}
+
+}
